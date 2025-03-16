@@ -1,0 +1,33 @@
+# Binary files
+*.dat
+*.o
+*.out
+*.exe
+task_manager
+
+# VS Code specific files
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/c_cpp_properties.json
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Build directories
+build/
+bin/
+obj/
+
+# Editor backup files
+*~
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
