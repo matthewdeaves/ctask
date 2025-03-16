@@ -7,7 +7,9 @@
             "command": "gcc",
             "args": [
                 "-g",
+                "${workspaceFolder}/main.c",
                 "${workspaceFolder}/task_manager.c",
+                "${workspaceFolder}/task_ui.c",
                 "${workspaceFolder}/date_utils.c",
                 "-o",
                 "${workspaceFolder}/task_manager"
