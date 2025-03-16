@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define MAX_TASK_DESC 100
 #define MAX_TASKS 100
@@ -30,6 +31,7 @@ void saveTasksToFile();
 void loadTasksFromFile();
 void deleteDataFile();
 void displayMenu();
+int isValidDate(int year, int month, int day);
 
 int main() {
     int choice;
@@ -108,12 +110,51 @@ void addTask() {
     getchar(); // Consume newline
     
     if (hasDueDate == 'y' || hasDueDate == 'Y') {
-        printf("Enter due date (YYYY MM DD): ");
-        scanf("%d %d %d", &tasks[taskCount].year, &tasks[taskCount].month, &tasks[taskCount].day);
-        getchar(); // Consume newline
-        tasks[taskCount].hasDueDate = 1;
-        printf("Due date set to: %d-%02d-%02d\n", 
-               tasks[taskCount].year, tasks[taskCount].month, tasks[taskCount].day);
+        int year, month, day;
+        int validDate = 0;
+        
+        while (!validDate) {
+            printf("Enter due date (YYYY MM DD) or type 'skip' to skip: ");
+            
+            // Check if user wants to skip
+            char input[10];
+            if (scanf("%9s", input) == 1) { // limit input to 9 char given max size of input variable
+                if (strcmp(input, "skip") == 0) {
+                    getchar(); // Consume the rest of the line
+                    printf("Skipping due date.\n");
+                    tasks[taskCount].hasDueDate = 0;
+                    break;
+                }
+                
+                // Try to parse the input as a year
+                if (sscanf(input, "%d", &year) == 1) {
+                    // Now read the month and day
+                    if (scanf("%d %d", &month, &day) == 2) {
+                        getchar(); // Consume newline
+                        
+                        if (isValidDate(year, month, day)) {
+                            validDate = 1;
+                            tasks[taskCount].year = year;
+                            tasks[taskCount].month = month;
+                            tasks[taskCount].day = day;
+                            tasks[taskCount].hasDueDate = 1;
+                            printf("Due date set to: %d-%02d-%02d\n", year, month, day);
+                        } else {
+                            printf("Invalid date. Please enter a valid date or type 'skip'.\n");
+                        }
+                    } else {
+                        printf("Invalid input format. Please use YYYY MM DD format or type 'skip'.\n");
+                        while (getchar() != '\n'); // Clear input buffer
+                    }
+                } else {
+                    printf("Invalid input format. Please use YYYY MM DD format or type 'skip'.\n");
+                    while (getchar() != '\n'); // Clear input buffer
+                }
+            } else {
+                printf("Error reading input. Please try again.\n");
+                while (getchar() != '\n'); // Clear input buffer
+            }
+        }
     } else {
         tasks[taskCount].hasDueDate = 0;
     }
@@ -264,4 +305,24 @@ void deleteDataFile() {
         printf("Error deleting data file '%s'.\n", FILENAME);
         perror("Error");  // This will print the specific error message
     }
+}
+
+int isValidDate(int year, int month, int day) {
+    struct tm date = {0};
+    
+    // Set the date components
+    date.tm_year = year - 1900;  // tm_year is years since 1900
+    date.tm_mon = month - 1;     // tm_mon is 0-11
+    date.tm_mday = day;          // tm_mday is 1-31
+    
+    // mktime will normalize the date and return -1 if date is invalid
+    time_t timestamp = mktime(&date);
+    if (timestamp == -1) {
+        return 0;  // Invalid date
+    }
+    
+    // Check if mktime adjusted the date (which means original was invalid)
+    return (date.tm_year == year - 1900 && 
+            date.tm_mon == month - 1 && 
+            date.tm_mday == day);
 }
