@@ -11,6 +11,10 @@ typedef struct {
     char description[MAX_TASK_DESC];
     int completed;
     int id;
+    int year;
+    int month;
+    int day;
+    int hasDueDate;
 } Task;
 
 // Global variables
@@ -24,6 +28,7 @@ void markTaskComplete();
 void deleteTask();
 void saveTasksToFile();
 void loadTasksFromFile();
+void deleteDataFile();
 void displayMenu();
 
 int main() {
@@ -55,6 +60,9 @@ int main() {
                 saveTasksToFile();
                 break;
             case 6:
+                deleteDataFile();
+                break;
+            case 7:
                 printf("Exiting program. Goodbye!\n");
                 break;
             default:
@@ -62,7 +70,7 @@ int main() {
         }
         
         printf("\n");
-    } while(choice != 6);
+    } while(choice != 7);
     
     return 0;
 }
@@ -74,7 +82,8 @@ void displayMenu() {
     printf("3. Mark a task as complete\n");
     printf("4. Delete a task\n");
     printf("5. Save tasks to file\n");
-    printf("6. Exit\n");
+    printf("6. Delete data file\n");
+    printf("7. Exit\n");
 }
 
 void addTask() {
@@ -92,6 +101,23 @@ void addTask() {
     tasks[taskCount].completed = 0;
     tasks[taskCount].id = taskCount + 1;
     
+    // Ask for due date
+    char hasDueDate;
+    printf("Add a due date? (y/n): ");
+    scanf("%c", &hasDueDate);
+    getchar(); // Consume newline
+    
+    if (hasDueDate == 'y' || hasDueDate == 'Y') {
+        printf("Enter due date (YYYY MM DD): ");
+        scanf("%d %d %d", &tasks[taskCount].year, &tasks[taskCount].month, &tasks[taskCount].day);
+        getchar(); // Consume newline
+        tasks[taskCount].hasDueDate = 1;
+        printf("Due date set to: %d-%02d-%02d\n", 
+               tasks[taskCount].year, tasks[taskCount].month, tasks[taskCount].day);
+    } else {
+        tasks[taskCount].hasDueDate = 0;
+    }
+    
     printf("Task added successfully!\n");
     taskCount++;
 }
@@ -104,10 +130,17 @@ void listTasks() {
     
     printf("\n===== Your Tasks =====\n");
     for (int i = 0; i < taskCount; i++) {
-        printf("%d. [%s] %s\n", 
+        printf("%d. [%s] %s", 
                tasks[i].id, 
                tasks[i].completed ? "X" : " ", 
                tasks[i].description);
+        
+        // Display due date if it exists
+        if (tasks[i].hasDueDate) {
+            printf(" (Due: %d-%02d-%02d)", 
+                   tasks[i].year, tasks[i].month, tasks[i].day);
+        }
+        printf("\n");
     }
 }
 
@@ -217,4 +250,18 @@ void loadTasksFromFile() {
     
     fclose(file);
     printf("Tasks loaded from file.\n");
+}
+
+void deleteDataFile() {
+    // Attempt to remove the file
+    int result = remove(FILENAME);
+    
+    if (result == 0) {
+        printf("Data file '%s' deleted successfully.\n", FILENAME);
+        // Reset the task count since we've deleted all saved tasks
+        taskCount = 0;
+    } else {
+        printf("Error deleting data file '%s'.\n", FILENAME);
+        perror("Error");  // This will print the specific error message
+    }
 }
